@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daily Log</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0f0f0f;color:#e8e4dc;font-family:'DM Mono','Courier New',monospace;padding-bottom:80px}
+.app{max-width:430px;margin:0 auto;padding:0 18px}
+
+/* Header */
+header{padding:24px 0 0}
+.date{font-size:10px;color:#6b6b6b;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+h1{font-family:'DM Serif Display',Georgia,serif;font-size:28px;font-weight:400;margin-bottom:16px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid #2e2e2e;margin-bottom:24px}
+.tab{flex:1;background:none;border:none;color:#6b6b6b;font-family:inherit;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;padding:12px 0;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.tab.active{color:#c8a96e;border-bottom-color:#c8a96e}
+.tab:active{opacity:.7}
+
+/* Panels */
+.panel{display:none}
+.panel.active{display:block}
+
+/* Section labels */
+.lbl{font-size:10px;color:#6b6b6b;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px}
+
+/* Cards */
+.card{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:12px;padding:18px;margin-bottom:24px}
+
+/* Beverages */
+#bevList{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.bev{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:12px;padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;-webkit-user-select:none}
+.bev:active{opacity:.7}
+.bev.done{opacity:.55;background:#1e1e1e;border-color:#333}
+.bleft{display:flex;align-items:center;gap:12px}
+.icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0}
+.water .icon{background:rgba(74,158,187,.15)}
+.coffee .icon{background:rgba(139,94,60,.15)}
+.tea .icon{background:rgba(122,158,90,.15)}
+.bname{font-size:14px;font-weight:500}
+.bmeta{font-size:11px;color:#6b6b6b;margin-top:2px}
+.bright{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.btime{font-size:12px;color:#6b6b6b}
+.check{width:22px;height:22px;border-radius:50%;border:1.5px solid #3a3a3a;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  font-weight:600;color:#0f0f0f}
+.done .check{background:#6ec8b4;border-color:#6ec8b4}
+
+/* Summary */
+.sumrow{display:flex;justify-content:space-between;padding:7px 0;
+  border-bottom:1px solid #222;font-size:12px}
+.sumrow:last-of-type{border:none}
+.sumlbl{color:#6b6b6b}
+.sumval{font-weight:500}
+.sumval.hi{color:#c8a96e}
+.prog{height:3px;background:#222;border-radius:2px;margin-top:12px;overflow:hidden}
+.progfill{height:100%;background:#6ec8b4;border-radius:2px;transition:width .4s}
+.pct{font-size:10px;color:#6b6b6b;text-align:right;margin-top:5px}
+
+/* Weight */
+.wrow{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+input[type=number]{flex:1;background:#0f0f0f;border:1px solid #2e2e2e;border-radius:8px;
+  color:#e8e4dc;font-family:inherit;font-size:22px;font-weight:500;
+  padding:11px 14px;text-align:center;outline:none;
+  -webkit-appearance:none;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input:focus{border-color:#c8a96e}
+.unit{font-size:13px;color:#6b6b6b}
+#logWtBtn{width:100%;background:#c8a96e;color:#0f0f0f;border:none;border-radius:8px;
+  font-family:inherit;font-size:12px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;padding:13px;cursor:pointer}
+#logWtBtn:active{opacity:.8}
+#wList{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.wentry{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;background:#0f0f0f;border-radius:6px;border:1px solid #2e2e2e}
+.wval{font-size:15px;font-weight:500;color:#c8a96e}
+.wtime{font-size:11px;color:#6b6b6b}
+.wdel{background:none;border:none;color:#6b6b6b;font-size:18px;line-height:1;padding:0 4px;cursor:pointer}
+
+/* Export buttons */
+.btn-outline{width:100%;background:none;border:1px solid #c8a96e;color:#c8a96e;
+  border-radius:10px;font-family:inherit;font-size:12px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;padding:15px;cursor:pointer;margin-bottom:8px;display:block}
+.btn-ghost{width:100%;background:none;border:1px solid #2e2e2e;color:#6b6b6b;
+  border-radius:10px;font-family:inherit;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;padding:15px;cursor:pointer;margin-bottom:8px;display:block}
+.btn-outline:active,.btn-ghost:active{opacity:.7}
+.btn-danger{width:100%;background:none;border:1px solid #882222;color:#cc4444;
+  border-radius:10px;font-family:inherit;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;padding:15px;cursor:pointer;margin-bottom:8px;display:block}
+.btn-danger:active{opacity:.7}
+
+/* DAT box */
+.dat-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;
+  padding:14px 16px;font-size:11px;color:#6ec8b4;white-space:pre;
+  overflow-x:auto;line-height:1.8;margin-bottom:8px}
+
+/* History */
+.month-block{margin-bottom:16px}
+.month-header{display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;background:#1a1a1a;border:1px solid #2e2e2e;
+  border-radius:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.month-header:active{opacity:.7}
+.month-title{font-size:13px;font-weight:500;color:#e8e4dc}
+.month-arrow{font-size:12px;color:#6b6b6b;transition:transform .2s}
+.month-header.open .month-arrow{transform:rotate(90deg)}
+.month-content{display:none;margin-top:4px}
+.month-content.open{display:block}
+.month-dat{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;
+  padding:14px 16px;font-size:11px;color:#6ec8b4;white-space:pre;
+  overflow-x:auto;line-height:1.8}
+.empty-msg{font-size:12px;color:#6b6b6b;text-align:center;padding:30px 0}
+
+/* Toast */
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:#c8a96e;color:#0f0f0f;padding:10px 20px;border-radius:20px;
+  font-size:12px;font-weight:500;letter-spacing:.08em;white-space:nowrap;
+  z-index:999;pointer-events:none;opacity:0;transition:all .25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="date" id="dateLabel"></div>
+    <h1>Daily Log</h1>
+    <div class="tabs">
+      <button class="tab active" data-tab="today">Today</button>
+      <button class="tab" data-tab="history">History</button>
+    </div>
+  </header>
+
+  <!-- TODAY PANEL -->
+  <div class="panel active" id="panel-today">
+
+    <!-- Beverages -->
+    <div class="lbl">Beverage Schedule</div>
+    <div id="bevList"></div>
+
+    <!-- Beverage Summary -->
+    <div class="lbl">Fluid Summary</div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="sumrow"><span class="sumlbl">Water</span><span class="sumval" id="sWater">0 / 5 (0 oz)</span></div>
+      <div class="sumrow"><span class="sumlbl">Decaf Coffee</span><span class="sumval" id="sCoffee">0 / 1 (0 oz)</span></div>
+      <div class="sumrow"><span class="sumlbl">Tea</span><span class="sumval" id="sTea">0 / 1 (0 oz)</span></div>
+      <div class="sumrow"><span class="sumlbl">Total Fluid</span><span class="sumval hi" id="sTotal">0 / 80 oz</span></div>
+      <div class="prog"><div class="progfill" id="pFill" style="width:0%"></div></div>
+      <div class="pct" id="pPct">0% of daily target</div>
+    </div>
+
+    <!-- Weight -->
+    <div class="lbl">Morning Weight</div>
+    <div class="card">
+      <div class="wrow">
+        <input type="number" id="wtInput" placeholder="000.0" step="0.1" min="0" max="999">
+        <span class="unit">lbs</span>
+      </div>
+      <button id="logWtBtn">Log Weight</button>
+      <div id="wList"></div>
+    </div>
+
+    <!-- Today Export -->
+    <div class="lbl">Today's .dat</div>
+    <button class="btn-ghost" id="previewTodayBtn">Preview Today's .dat</button>
+    <div class="dat-box" id="todayDatBox" style="display:none"></div>
+    <button class="btn-danger" id="resetBtn">Reset Today</button>
+
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div class="panel" id="panel-history">
+    <div style="margin-bottom:16px">
+      <button class="btn-outline" id="exportAllBtn">Export All History as .dat</button>
+    </div>
+    <div id="historyContent"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var BEVS = [
+  {id:'w1',type:'water', label:'Water',       icon:'💧',oz:12,time:'07:00',note:'1st glass'},
+  {id:'w2',type:'water', label:'Water',       icon:'💧',oz:12,time:'07:00',note:'2nd glass'},
+  {id:'w3',type:'water', label:'Water',       icon:'💧',oz:12,time:'08:30',note:'3rd glass'},
+  {id:'w4',type:'water', label:'Water',       icon:'💧',oz:12,time:'10:00',note:'4th glass'},
+  {id:'w5',type:'water', label:'Water',       icon:'💧',oz:12,time:'11:30',note:'5th glass'},
+  {id:'dc',type:'coffee',label:'Decaf Coffee',icon:'☕',oz:10,time:'12:00',note:'10 oz mug'},
+  {id:'t1',type:'tea',   label:'Tea',         icon:'🍵',oz:10,time:'14:30',note:'10 oz cup'}
+];
+var TARGET = 80;
+var MONTH_NAMES = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+
+function todayKey() {
+  var d = new Date();
+  return 'dl_' + d.getFullYear() + '_' + d.getMonth() + '_' + d.getDate();
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(todayKey());
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return {weights:[], logged:{}};
+}
+
+function saveState() {
+  try { localStorage.setItem(todayKey(), JSON.stringify(state)); } catch(e) {}
+}
+
+// Get all daily-log keys from localStorage
+function getAllKeys() {
+  var keys = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('dl_') === 0) keys.push(k);
+    }
+  } catch(e) {}
+  return keys.sort();
+}
+
+function parseKey(k) {
+  // dl_YYYY_M_D
+  var parts = k.split('_');
+  return {year: parseInt(parts[1]), month: parseInt(parts[2]), day: parseInt(parts[3])};
+}
+
+function getKeyData(k) {
+  try {
+    var raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+var state = loadState();
+var todayDatVisible = false;
+var toastTimer = null;
+
+// Date label
+document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('en-US', {
+  weekday:'long', month:'long', day:'numeric', year:'numeric'
+});
+
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+}
+
+function decYr(iso) {
+  var d = new Date(iso);
+  var y = d.getFullYear();
+  var s = new Date(y, 0, 1);
+  var e = new Date(y+1, 0, 1);
+  return (y + (d - s) / (e - s)).toFixed(6);
+}
+
+function fmtDate(year, month, day) {
+  var d = new Date(year, month, day);
+  return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+}
+
+// Build .dat for a single day's weights
+function buildDayDat(weights, label) {
+  if (!weights || !weights.length) return null;
+  var lines = [];
+  if (label) lines.push('{ ' + label + ' }');
+  for (var i = 0; i < weights.length; i++) {
+    var w = weights[i];
+    lines.push('\t' + decYr(w.ts) + '\t' + parseFloat(w.val).toFixed(1));
+  }
+  return lines.join('\n');
+}
+
+// Build full .dat for all history
+function buildAllDat() {
+  var keys = getAllKeys();
+  if (!keys.length) return '{ No data stored yet }';
+  var allWeights = [];
+  for (var i = 0; i < keys.length; i++) {
+    var data = getKeyData(keys[i]);
+    if (data && data.weights) {
+      for (var j = 0; j < data.weights.length; j++) {
+        allWeights.push(data.weights[j]);
+      }
+    }
+  }
+  allWeights.sort(function(a,b){ return new Date(a.ts) - new Date(b.ts); });
+  if (!allWeights.length) return '{ No weight entries found }';
+  var lines = ['{ Weight history — Daily Log }', 'Weight~lbs~'];
+  for (var i = 0; i < allWeights.length; i++) {
+    var w = allWeights[i];
+    lines.push('\t' + decYr(w.ts) + '\t' + parseFloat(w.val).toFixed(1));
+  }
+  lines.push('~');
+  return lines.join('\n');
+}
+
+// Build today's .dat
+function buildTodayDat() {
+  if (!state.weights.length) return '{ No weight entries today }';
+  var lines = ['{ Weight data — Daily Log }', 'Weight~lbs~'];
+  for (var i = 0; i < state.weights.length; i++) {
+    var w = state.weights[i];
+    lines.push('\t' + decYr(w.ts) + '\t' + parseFloat(w.val).toFixed(1));
+  }
+  lines.push('~');
+  return lines.join('\n');
+}
+
+// --- Tabs ---
+var tabs = document.querySelectorAll('.tab');
+for (var i = 0; i < tabs.length; i++) {
+  tabs[i].addEventListener('click', function() {
+    var target = this.getAttribute('data-tab');
+    for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+    this.classList.add('active');
+    var panels = document.querySelectorAll('.panel');
+    for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+    document.getElementById('panel-' + target).classList.add('active');
+    if (target === 'history') renderHistory();
+  });
+}
+
+// --- Weight ---
+function renderWeights() {
+  var el = document.getElementById('wList');
+  if (!state.weights.length) { el.innerHTML = ''; return; }
+  var html = '';
+  for (var i = 0; i < state.weights.length; i++) {
+    var w = state.weights[i];
+    html += '<div class="wentry">' +
+      '<span class="wval">' + w.val + ' lbs</span>' +
+      '<span class="wtime">' + fmtTime(w.ts) + '</span>' +
+      '<button class="wdel" data-idx="' + i + '">×</button>' +
+      '</div>';
+  }
+  el.innerHTML = html;
+}
+
+document.getElementById('logWtBtn').addEventListener('click', function() {
+  var input = document.getElementById('wtInput');
+  var val = parseFloat(input.value);
+  if (isNaN(val) || val <= 0) { showToast('Enter a valid weight'); return; }
+  state.weights.push({val: val.toFixed(1), ts: new Date().toISOString()});
+  saveState();
+  input.value = '';
+  renderWeights();
+  if (todayDatVisible) document.getElementById('todayDatBox').textContent = buildTodayDat();
+  showToast('Logged ' + val.toFixed(1) + ' lbs');
+});
+
+document.getElementById('wtInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('logWtBtn').click();
+});
+
+document.getElementById('wList').addEventListener('click', function(e) {
+  var btn = e.target.closest ? e.target.closest('.wdel') : null;
+  if (!btn) { if (e.target.className === 'wdel') btn = e.target; }
+  if (!btn) return;
+  var idx = parseInt(btn.getAttribute('data-idx'));
+  state.weights.splice(idx, 1);
+  saveState();
+  renderWeights();
+  if (todayDatVisible) document.getElementById('todayDatBox').textContent = buildTodayDat();
+});
+
+// --- Beverages ---
+function renderBevs() {
+  var el = document.getElementById('bevList');
+  var html = '';
+  for (var i = 0; i < BEVS.length; i++) {
+    var b = BEVS[i];
+    var done = !!state.logged[b.id];
+    html += '<div class="bev ' + b.type + (done ? ' done' : '') + '" data-id="' + b.id + '">' +
+      '<div class="bleft">' +
+        '<div class="icon">' + b.icon + '</div>' +
+        '<div><div class="bname">' + b.label + '</div>' +
+        '<div class="bmeta">' + b.oz + ' oz · ' + b.note + '</div></div>' +
+      '</div>' +
+      '<div class="bright">' +
+        '<span class="btime">' + b.time + '</span>' +
+        '<div class="check">' + (done ? '✓' : '') + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  el.innerHTML = html;
+}
+
+document.getElementById('bevList').addEventListener('click', function(e) {
+  var card = e.target;
+  while (card && card !== this) {
+    if (card.classList && card.classList.contains('bev')) break;
+    card = card.parentNode;
+  }
+  if (!card || !card.classList || !card.classList.contains('bev')) return;
+  var id = card.getAttribute('data-id');
+  if (state.logged[id]) delete state.logged[id];
+  else state.logged[id] = new Date().toISOString();
+  saveState();
+  renderBevs();
+  renderSummary();
+});
+
+// --- Summary ---
+function renderSummary() {
+  var w = 0, c = 0, t = 0;
+  for (var i = 0; i < BEVS.length; i++) {
+    var b = BEVS[i];
+    if (!state.logged[b.id]) continue;
+    if (b.type === 'water') w++;
+    else if (b.type === 'coffee') c++;
+    else if (b.type === 'tea') t++;
+  }
+  var oz = w*12 + c*10 + t*10;
+  var pct = Math.min(100, Math.round(oz / TARGET * 100));
+  document.getElementById('sWater').textContent = w + ' / 5 (' + (w*12) + ' oz)';
+  document.getElementById('sCoffee').textContent = c + ' / 1 (' + (c*10) + ' oz)';
+  document.getElementById('sTea').textContent = t + ' / 1 (' + (t*10) + ' oz)';
+  document.getElementById('sTotal').textContent = oz + ' / ' + TARGET + ' oz';
+  document.getElementById('pFill').style.width = pct + '%';
+  document.getElementById('pPct').textContent = pct + '% of daily target';
+}
+
+// --- Today DAT preview ---
+document.getElementById('previewTodayBtn').addEventListener('click', function() {
+  todayDatVisible = !todayDatVisible;
+  var box = document.getElementById('todayDatBox');
+  box.style.display = todayDatVisible ? 'block' : 'none';
+  if (todayDatVisible) box.textContent = buildTodayDat();
+  this.textContent = (todayDatVisible ? 'Hide' : 'Preview') + " Today's .dat";
+});
+
+// --- Reset ---
+document.getElementById('resetBtn').addEventListener('click', function() {
+  if (!confirm('Reset all entries for today?')) return;
+  state = {weights:[], logged:{}};
+  saveState();
+  renderWeights();
+  renderBevs();
+  renderSummary();
+  if (todayDatVisible) document.getElementById('todayDatBox').textContent = buildTodayDat();
+  showToast('Day reset');
+});
+
+// --- Export All ---
+document.getElementById('exportAllBtn').addEventListener('click', function() {
+  var txt = buildAllDat();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      showToast('All history copied!');
+    }).catch(function() { fallbackCopy(txt); });
+  } else {
+    fallbackCopy(txt);
+  }
+});
+
+function fallbackCopy(txt) {
+  var ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); showToast('Copied!'); }
+  catch(e) { showToast('Copy failed'); }
+  document.body.removeChild(ta);
+}
+
+// --- History ---
+function renderHistory() {
+  var el = document.getElementById('historyContent');
+  var keys = getAllKeys();
+  if (!keys.length) {
+    el.innerHTML = '<div class="empty-msg">No historical data yet.<br>Come back tomorrow!</div>';
+    return;
+  }
+
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth();
+
+  // Group keys by year+month
+  var months = {};
+  for (var i = 0; i < keys.length; i++) {
+    var p = parseKey(keys[i]);
+    var mk = p.year + '_' + p.month;
+    if (!months[mk]) months[mk] = {year:p.year, month:p.month, keys:[]};
+    months[mk].keys.push(keys[i]);
+  }
+
+  // Sort month keys: current month first, then previous months descending
+  var monthKeys = Object.keys(months);
+  monthKeys.sort(function(a, b) {
+    var pa = a.split('_'), pb = b.split('_');
+    var ya = parseInt(pa[0]), ma = parseInt(pa[1]);
+    var yb = parseInt(pb[0]), mb = parseInt(pb[1]);
+    return (yb*12+mb) - (ya*12+ma);
+  });
+
+  var html = '';
+  for (var i = 0; i < monthKeys.length; i++) {
+    var mk = monthKeys[i];
+    var m = months[mk];
+    var isCurrent = (m.year === curYear && m.month === curMonth);
+    var monthLabel = MONTH_NAMES[m.month] + ' ' + m.year;
+
+    // Build dat content for this month
+    var datLines = ['{ Weight — ' + monthLabel + ' }', 'Weight~lbs~'];
+    var hasData = false;
+    // Sort days ascending within month
+    m.keys.sort();
+    for (var j = 0; j < m.keys.length; j++) {
+      var data = getKeyData(m.keys[j]);
+      if (!data || !data.weights || !data.weights.length) continue;
+      var p = parseKey(m.keys[j]);
+      datLines.push('{ ' + fmtDate(p.year, p.month, p.day) + ' }');
+      for (var k = 0; k < data.weights.length; k++) {
+        var w = data.weights[k];
+        datLines.push('\t' + decYr(w.ts) + '\t' + parseFloat(w.val).toFixed(1));
+        hasData = true;
+      }
+    }
+    datLines.push('~');
+    var datContent = hasData ? datLines.join('\n') : '{ No weight entries for ' + monthLabel + ' }';
+
+    if (isCurrent) {
+      // Current month — always expanded, no toggle
+      html += '<div class="month-block">' +
+        '<div class="lbl">' + monthLabel + ' (Current)</div>' +
+        '<div class="month-dat">' + escHtml(datContent) + '</div>' +
+        '</div>';
+    } else {
+      // Previous months — collapsible
+      var uid = 'month_' + mk;
+      html += '<div class="month-block">' +
+        '<div class="month-header" data-uid="' + uid + '">' +
+          '<span class="month-title">' + monthLabel + '</span>' +
+          '<span class="month-arrow">▶</span>' +
+        '</div>' +
+        '<div class="month-content" id="' + uid + '">' +
+          '<div class="month-dat" style="margin-top:4px">' + escHtml(datContent) + '</div>' +
+        '</div>' +
+        '</div>';
+    }
+  }
+
+  el.innerHTML = html;
+
+  // Wire up collapsible headers
+  var headers = el.querySelectorAll('.month-header');
+  for (var i = 0; i < headers.length; i++) {
+    headers[i].addEventListener('click', function() {
+      var uid = this.getAttribute('data-uid');
+      var content = document.getElementById(uid);
+      var isOpen = content.classList.contains('open');
+      if (isOpen) {
+        content.classList.remove('open');
+        this.classList.remove('open');
+      } else {
+        content.classList.add('open');
+        this.classList.add('open');
+      }
+    });
+  }
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// --- Toast ---
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2200);
+}
+
+// Init
+renderWeights();
+renderBevs();
+renderSummary();
+</script>
+</body>
+</html>
