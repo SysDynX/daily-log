@@ -519,7 +519,7 @@ function renderHistory() {
     var datLines = ['{ Weight — ' + monthLabel + ' }', 'Weight~lbs~'];
     var hasData = false;
     // Sort days ascending within month
-    m.keys.sort();
+    m.keys.sort(function(a, b) { return parseKey(a).day - parseKey(b).day; });;
     for (var j = 0; j < m.keys.length; j++) {
       var data = getKeyData(m.keys[j]);
       if (!data || !data.weights || !data.weights.length) continue;
